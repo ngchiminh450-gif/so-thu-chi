@@ -88,11 +88,11 @@ svg text{fill:var(--muted);font:11px var(--font)}
 .rep tfoot td{font-weight:700;border-bottom:0;border-top:2px solid var(--line)}
 .empty{color:var(--muted);text-align:center;padding:28px 8px}
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.quick{display:flex;gap:10px;justify-content:center;position:fixed;left:0;right:0;bottom:0;z-index:5;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line)}
-.quick .qb{flex:1;max-width:520px;padding:15px;font-size:16px}
-.qb{border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;color:#fff;box-shadow:0 2px 6px #0003;white-space:nowrap}
-.qb.qt{background:#1b8a5a}.qb.qc{background:#c8452f}
-.qb:hover{filter:brightness(1.1)}
+.actbar{display:flex;gap:10px;justify-content:center;position:fixed;left:0;right:0;bottom:0;z-index:5;padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line)}
+.actbar .bq{flex:1;max-width:520px;padding:15px;font-size:16px}
+.bq{border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;color:#fff;box-shadow:0 2px 6px #0003;white-space:nowrap}
+.bq.bq-in{background:#1b8a5a}.bq.bq-out{background:#c8452f}
+.bq:hover{filter:brightness(1.1)}
 select.period{padding:12px 14px}
 .overlay{position:fixed;inset:0;background:#0007;z-index:20;display:flex;align-items:flex-end;justify-content:center}
 .sheet{background:var(--surface);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));max-height:94%;overflow:auto}
@@ -120,7 +120,7 @@ textarea{min-height:120px;font:12px/1.4 ui-monospace,Consolas,monospace}
 <div class="wrap">
   <header>
     <div><h1>Sổ Kinh Doanh</h1><div class="sub" id="today"></div></div>
-    <div class="top"><div class="quick"><button class="qb qc" id="addChi" title="Phím tắt: C">− Ghi chi</button><button class="qb qt" id="addThu" title="Phím tắt: T">+ Ghi thu</button></div><select class="period" id="period" aria-label="Kỳ báo cáo">
+    <div class="top"><div class="actbar"><button class="bq bq-out" id="btnOut" title="Phím tắt: C">− Ghi chi</button><button class="bq bq-in" id="btnIn" title="Phím tắt: T">+ Ghi thu</button></div><select class="period" id="period" aria-label="Kỳ báo cáo">
       <option value="today">Hôm nay</option><option value="week">Tuần này</option><option value="lastweek">Tuần trước</option>
       <option value="month">Tháng này</option><option value="lastmonth">Tháng trước</option>
       <option value="quarter">3 tháng gần nhất</option><option value="year">Năm nay</option><option value="custom">Tùy chọn ngày</option><option value="all">Tất cả</option>
@@ -296,7 +296,7 @@ var GS=lsGet('gs',{url:'',key:''}), Q=lsGet('q',[]), flushing=false, gsErr='';
 function lsGet(k,d){try{var r=localStorage.getItem('so-kinh-doanh.'+k);return r?JSON.parse(r):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem('so-kinh-doanh.'+k,JSON.stringify(v))}catch(e){}}
 function syncLabel(){if(!GS.url)return '';return ' · Trang tính: '+(gsErr?'lỗi kết nối':Q.length?'chờ gửi '+Q.length:'đã đồng bộ')}
-function updToday(){var el=document.getElementById('today');if(el)el.textContent='Hôm nay '+dmy(TODAY)+' · v6'+syncLabel();var g=document.getElementById('gsStat');if(g)g.textContent=GS.url?(syncLabel().slice(3)+(gsErr?' ('+gsErr+')':'')):'Chưa liên kết'}
+function updToday(){var el=document.getElementById('today');if(el)el.textContent='Hôm nay '+dmy(TODAY)+' · v7'+syncLabel();var g=document.getElementById('gsStat');if(g)g.textContent=GS.url?(syncLabel().slice(3)+(gsErr?' ('+gsErr+')':'')):'Chưa liên kết'}
 function errMsg(e){return (e instanceof TypeError)?'Không kết nối được. Kiểm tra mạng và địa chỉ Web App. Tính năng này chỉ chạy trên bản online, không chạy trong khung xem của Claude.':(e&&e.message)||'Lỗi không rõ'}
 function gsGet(action){var u=GS.url+(GS.url.indexOf('?')<0?'?':'&')+'action='+action+'&key='+encodeURIComponent(GS.key);
   return fetch(u).then(function(r){return r.json()}).then(function(j){if(!j.ok)throw new Error(j.error||'Lỗi từ Trang tính');return j},function(e){if(e instanceof SyntaxError)throw new Error('Phản hồi không hợp lệ. Kiểm tra quyền truy cập là "Bất kỳ ai".');throw e})}
@@ -484,8 +484,8 @@ function openForm(type,id,dateArg){
   draw();
 }
 
-$('addThu').onclick=function(){openForm('thu')};
-$('addChi').onclick=function(){openForm('chi')};
+$('btnIn').onclick=function(){openForm('thu')};
+$('btnOut').onclick=function(){openForm('chi')};
 $('period').onchange=function(e){period=e.target.value;render()};
 $('tabs').onclick=function(e){var b=e.target.closest('button');if(b){tab=b.dataset.t;render()}};
 
